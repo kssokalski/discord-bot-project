@@ -5,7 +5,14 @@ const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 
 // Create a new client instance
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const client = new Client({ 
+	intents: [
+		GatewayIntentBits.Guilds, 
+		GatewayIntentBits.MessageContent, 
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.DirectMessages
+	] });
 
 client.commands = new Collection();
 
@@ -61,6 +68,25 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 		
 });
+
+//event working when message is sent
+client.on(Events.MessageCreate, async message => {
+	//if message is private message, return
+	if(message.guild == null) return;
+	//if bot wrote the message, return
+	if(message.author.bot) return;
+	//test blacklist
+	var blacklist = ['test', 'best', 'west', 'crest', 'pest'];
+	
+
+	var foundWords = blacklist.filter(word => message.content.toLowerCase().includes(word.toLowerCase()));
+
+	if (foundWords.length > 0) {
+		message.channel.send("ZLE SLOWKO!!");
+		message.author.send("Na serwerze "+message.guild.name+" słowo/a ```"+foundWords+"``` jest/są zakazane.")
+		message.delete();
+	} 
+})
 
 // Log in to Discord with your client's token
 client.login(token);
