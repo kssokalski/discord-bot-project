@@ -69,70 +69,76 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 		
 });
-
-// //event working when message is sent
-// client.on(Events.MessageCreate, async message => {
-// 	//if message is private message, return
-// 	if(message.guild == null) return;
-// 	//if bot wrote the message, return
-// 	if(message.author.bot) return;
-// 	//test blacklist
-// 	var blacklist = ['test', 'best', 'west', 'crest', 'pest'];
+var blacklist = [];
+//event working when message is sent
+client.on(Events.MessageCreate, async message => {
+	//if message is private message, return
+	if(message.guild == null) return;
+	//if bot wrote the message, return
+	if(message.author.bot) return;
+	
+	try {
+		const data = fs.readFileSync(blacklistPath, 'utf-8');
+		blacklist = JSON.parse(data).words;
+		console.log('Czarna lista załadowana:', blacklist);
+	} catch (error) {
+		console.error('Błąd ładowania czarnej listy:', error);
+	  }
 	
 
-// 	var foundWords = blacklist.filter(word => message.content.toLowerCase().includes(word.toLowerCase()));
+	var foundWords = blacklist.filter(word => message.content.toLowerCase().includes(word.toLowerCase()));
 
-// 	if (foundWords.length > 0) {
-// 		message.channel.send("ZLE SLOWKO!!");
-// 		message.author.send("Na serwerze "+message.guild.name+" słowo/a ```"+foundWords+"``` jest/są zakazane.")
-// 		message.delete();
-// 	} 
-// })
+	if (foundWords.length > 0) {
+		message.channel.send("ZLE SLOWKO!!");
+		message.author.send("Na serwerze "+message.guild.name+" słowo/a ```"+foundWords+"``` jest/są zakazane.")
+		message.delete();
+	} 
+})
 
-// Funkcja do załadowania czarnej listy
-let blacklist = [];
+// // Funkcja do załadowania czarnej listy
+// let blacklist = [];
 
-function loadBlacklist() {
-  try {
-    const data = fs.readFileSync(blacklistPath, 'utf-8');
-    blacklist = JSON.parse(data).words;
-    console.log('Czarna lista załadowana:', blacklist);
-  } catch (error) {
-    console.error('Błąd ładowania czarnej listy:', error);
-  }
-}
+// function loadBlacklist() {
+//   try {
+//     const data = fs.readFileSync(blacklistPath, 'utf-8');
+//     blacklist = JSON.parse(data).words;
+//     console.log('Czarna lista załadowana:', blacklist);
+//   } catch (error) {
+//     console.error('Błąd ładowania czarnej listy:', error);
+//   }
+// }
 
-// Załaduj czarną listę przy starcie bota
-loadBlacklist();
+// // Załaduj czarną listę przy starcie bota
+// loadBlacklist();
 
-// Co 5 sekund sprawdzaj, czy plik został zmodyfikowany
-setInterval(() => {
-  loadBlacklist(); // Przeładuj czarną listę
-}, 1000); // Co 1 sekund
+// // Co 5 sekund sprawdzaj, czy plik został zmodyfikowany
+// setInterval(() => {
+//   loadBlacklist(); // Przeładuj czarną listę
+// }, 1000); // Co 1 sekund
 
-// Normalizacja tekstu (usuwanie nie-alfanumerycznych znaków)
-const normalize = text => text.toLowerCase().replace(/[^a-zA-Z0-9ąćęłńóśźż]/g, '');
+// // Normalizacja tekstu (usuwanie nie-alfanumerycznych znaków)
+// const normalize = text => text.toLowerCase().replace(/[^a-zA-Z0-9ąćęłńóśźż]/g, '');
 
-client.on(Events.MessageCreate, async message => {
-  if (message.guild == null || message.author.bot) return;
+// client.on(Events.MessageCreate, async message => {
+//   if (message.guild == null || message.author.bot) return;
 
-  const cleanedMessage = normalize(message.content);
-  const foundWords = blacklist.filter(word => cleanedMessage.includes(normalize(word)));
+//   const cleanedMessage = normalize(message.content);
+//   const foundWords = blacklist.filter(word => cleanedMessage.includes(normalize(word)));
 
-  if (foundWords.length > 0) {
-    try {
-      await message.channel.send("ZLE SLOWKO!!");
-      await message.delete();
-      try {
-        await message.author.send(`Na serwerze **${message.guild.name}** słowo/a \`\`\`${foundWords.join(', ')}\`\`\` jest/sa zakazane.`);
-      } catch (dmError) {
-        console.warn(`Nie udało się wysłać wiadomości prywatnej do ${message.author.tag}`);
-      }
-    } catch (error) {
-      console.error('Błąd przy obsłudze zakazanego słowa:', error);
-    }
-  }
-});
+//   if (foundWords.length > 0) {
+//     try {
+//       await message.channel.send("ZLE SLOWKO!!");
+//       await message.delete();
+//       try {
+//         await message.author.send(`Na serwerze **${message.guild.name}** słowo/a \`\`\`${foundWords.join(', ')}\`\`\` jest/sa zakazane.`);
+//       } catch (dmError) {
+//         console.warn(`Nie udało się wysłać wiadomości prywatnej do ${message.author.tag}`);
+//       }
+//     } catch (error) {
+//       console.error('Błąd przy obsłudze zakazanego słowa:', error);
+//     }
+//   }
+// });
 
 
 // Log in to Discord with your client's token
