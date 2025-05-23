@@ -4,6 +4,7 @@ const path = require('node:path'); //native node path utility module
 const { Client, Collection, Events, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 const blacklistPath = path.join(__dirname, 'blacklist.json');
+const { getWelcomeMessage } = require('./commands/utility/msg.js');
 
 // Create a new client instance
 const client = new Client({ 
@@ -93,7 +94,49 @@ client.on(Events.MessageCreate, async message => {
 		message.author.send("Na serwerze "+message.guild.name+" słowo/a ```"+foundWords+"``` jest/są zakazane.")
 		message.delete();
 	} 
-})
+});
+
+client.on('guildMemberAdd', async member => {
+    console.log(`New member joined: ${member.user.tag}`); // Debug log
+    
+    try {
+        const welcomeData = getWelcomeMessage(member.guild.id);
+        if (!welcomeData) {
+            console.log('No welcome message set for guild:', member.guild.id);
+            return;
+        }
+        
+        const channel = member.guild.channels.cache.get(welcomeData.channelId);
+        if (!channel) {
+            console.error('Channel not found:', welcomeData.channelId);
+            return;
+        }
+        
+        const welcomeMessage = welcomeData.message.replace('{user}', member.toString());
+        console.log('Sending welcome to channel:', channel.name);
+        
+        await channel.send(welcomeMessage);
+    } catch (error) {
+        console.error('Error in guildMemberAdd:', error);
+    }
+});
+
+client.on('ready', () => {
+    console.log(`Ready! Logged in as ${client.user.tag}`);
+
+    // TEST: sending a test message
+    const testChannelId = '1358347573500313613';
+    const channel = client.channels.cache.get(testChannelId);
+
+    if (channel) {
+        channel.send('SIEMANECZKO MORDKI')
+            .then(() => console.log('Wysłano testową wiadomość'))
+            .catch(err => console.error('Błąd wysyłania:', err));
+    } else {
+        console.error('Nie znaleziono kanału o ID:', testChannelId);
+        console.log('Dostępne kanały:', client.channels.cache.map(c => `${c.name} (${c.id})`));
+    }
+});
 
 // // Funkcja do załadowania czarnej listy
 // let blacklist = [];
